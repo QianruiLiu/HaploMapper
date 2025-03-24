@@ -2,7 +2,7 @@
 
 ## Overview
 The new version of haplogroup_frequency_tables.py (`new_haplogroup_frequency_tables.py`) can calculate subclades frequencies.
-This second version (`newgeography.py`) builds upon the initial visualization by integrating subtype analysis. It attempts to display both main haplogroups and their subtypes concurrently.
+This second version of geography.py (`newgeography.py`) builds upon the initial visualization by integrating subtype analysis. It attempts to display both main haplogroups and their subtypes concurrently.
 
 ## Known Issues
 - **Alignment Problem:** The outer ring (subtypes) does not align correctly with the inner ring (main haplogroups). This misalignment might lead to inaccurate visual interpretation.
