@@ -33,13 +33,13 @@ The analysis workflow in HaploMapper is divided into three main steps:
 ## Installation
 Clone the repository and install required Python dependencies:
 
-`bash
+`bash`
 
-git clone git@github.com:QianruiLiu/HaploMapper.git
+`git clone git@github.com:QianruiLiu/HaploMapper.git`
 
-cd HaploMapper
+`cd HaploMapper`
 
-pip install -r requirements.txt`
+`pip install -r requirements.txt`
 
 ## Dependencies
 **Python (recommended 3.12.9)**
