@@ -85,7 +85,7 @@ The following commands are done in bash:
 `python src/step1_filtering/filter_annotation.py -a data/raw/Annotations.xlsx -s data/raw/Ancient_samples.txt [-o data/processed/annotation_filtered.tsv]`
 
 ### Step 2: Frequency Tables
-`python src/step2_frequency/new_haplogroup_frequency_tables.py --input data/processed/annotation_filtered.tsv`
+`python src/step2_frequencyTable/new_haplogroup_frequency_tables.py --input data/processed/annotation_filtered.tsv`
 
 ### Step 3: Interactive Map
 `python src/step3_geography/perfect_geography.py --y_input data/processed/Y_haplogroup_frequencies.tsv --mt_input data/processed/mtDNA_haplogroup_frequencies.tsv`
