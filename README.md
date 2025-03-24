@@ -82,7 +82,7 @@ The following commands are done in bash:
 
 ## Running the Code
 ### Step 1: Filtering
-`python src/step1_filtering/filter_annotation.py -a data/raw/Annotations.xlsx -s data/raw/Ancient_samples.txt [-o data/processed/annotation_filtered.tsv]`
+`python src/step1_filtering/filter_annotation.py -a data/raw/Annotations.xlsx -s data/raw/Ancient_samples.txt`
 
 ### Step 2: Frequency Tables
 `python src/step2_frequencyTable/new_haplogroup_frequency_tables.py --input data/processed/annotation_filtered.tsv`
