@@ -32,12 +32,11 @@ The analysis workflow in HaploMapper is divided into three main steps:
 
 ## Files included
 ```
-project-root/
+HaploMapper/
 ├── data/
 │   ├── raw/
 │   │   ├── Annotations.xlsx
-│   │   ├── Ancient_samples.txt
-│   │   └── Modern_samples.txt
+│   │   └── Ancient_samples.txt
 │   └── processed/
 │       ├── annotation_filtered.tsv
 │       ├── mtDNA_haplogroup_frequencies.tsv
@@ -55,9 +54,6 @@ project-root/
 │       └── perfect_geography.py (version 4 - final version, perfect alignment)
 ├── outputs/
 │   └── haplogroup_map.html
-├── examples/
-│   ├── example_ancient/
-│   └── example_modern/
 └── requirements.txt
 ```
 **Note: The version 1,2,3 of geographic visualizaion part can be found in different branches, as well as the old version of haplogroup frequency calculation part.***
