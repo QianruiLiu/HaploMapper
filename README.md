@@ -31,8 +31,8 @@ The analysis workflow in HaploMapper is divided into three main steps:
   - `haplogroup_map.html` (interactive HTML visualization)
 
 ## Files included
-
-`project-root/
+```
+project-root/
 ├── data/
 │   ├── raw/
 │   │   ├── Annotations.xlsx
@@ -58,7 +58,8 @@ The analysis workflow in HaploMapper is divided into three main steps:
 ├── examples/
 │   ├── example_ancient/
 │   └── example_modern/
-└── requirements.txt`
+└── requirements.txt
+```
 **Note: The version 1,2,3 of geographic visualizaion part can be found in different branches, as well as the old version of haplogroup frequency calculation part.***
 
 ## Installation
