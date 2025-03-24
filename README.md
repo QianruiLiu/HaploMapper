@@ -99,6 +99,10 @@ Currently, no critical bugs have been identified. Please report any issues via t
 
 HaploMapper expects specific column headers. Make sure your files match the expected structure detailed above or adjust your files accordingly.
 
+### Why do I have problems in generating double-ring pie chart?
+
+Make sure you get internet connected and have accession to chart.js: https://cdn.jsdelivr.net/npm/chart.js.
+
 ## Contact
 
 ### For questions or issues, please contact Qianrui Liu:
