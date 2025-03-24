@@ -30,6 +30,37 @@ The analysis workflow in HaploMapper is divided into three main steps:
 - **Output:**
   - `haplogroup_map.html` (interactive HTML visualization)
 
+## Files included
+
+`project-root/
+├── data/
+│   ├── raw/
+│   │   ├── Annotations.xlsx
+│   │   ├── Ancient_samples.txt
+│   │   └── Modern_samples.txt
+│   └── processed/
+│       ├── annotation_filtered.tsv
+│       ├── mtDNA_haplogroup_frequencies.tsv
+│       └── Y_haplogroup_frequencies.tsv
+├── src/
+│   ├── step1_filtering/
+│   │   └── filter_annotation.py
+│   ├── step2_frequency/
+│   │   ├── new_haplogroup_frequency_tables.py
+│   │   └── haplogroup_frequency_tables.py (deprecated version)
+│   └── step3_geography/
+│       ├── geography.py (version 1 - basal haplogroups only)
+│       ├── newgeography.py (version 2 - includes subclades, alignment issues)
+│       ├── lately_geography.py (version 3 - improved alignment)
+│       └── perfect_geography.py (version 4 - final version, perfect alignment)
+├── outputs/
+│   └── haplogroup_map.html
+├── examples/
+│   ├── example_ancient/
+│   └── example_modern/
+└── requirements.txt`
+**Note: The version 1,2,3 of geographic visualizaion part can be found in different branches, as well as the old version of haplogroup frequency calculation part.***
+
 ## Installation
 Clone the repository and install required Python dependencies:
 
