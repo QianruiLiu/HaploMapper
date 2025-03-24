@@ -64,73 +64,66 @@ def is_subclade_col(col):
 
 def build_two_ring_data(row, haplo_cols):
     """
-    Given a row (representing a population) with frequency values,
-    return:
-      label_list  : All basal and subclade labels present in the population
-                    (first all basal, then all subclade, only those with nonzero values)
-      data_main   : Percentage of basal haplogroups in the population (inner ring)
-      data_sub    : Percentage of subclades in the population (outer ring), taken directly from the file
+    Generate unified label arrays and two-layer data based on input row:
+      label_list : Ordered, with parent groups followed by their subclades
+      data_main  : Inner ring data, parent groups use actual percentages, subclades filled with 0
+      data_sub   : Outer ring data, parent groups filled with 0, subclades use normalized values (normalized sum equals parent group percentage)
+      display_sub: Percentages for display in the outer ring, parent groups are None, subclades are (subclade original value/total of parent group's subclades)*100
     """
-    basal_data = []     # (col, pct, abs_count)
-    subclade_data = []  # (col, pct, abs_count)
-
-    total_ind = row.get("Total", 0)
-    if not isinstance(total_ind, (int, float)):
-        total_ind = 0
-
-    # Store the absolute count for each basal haplogroup (used for calculating subclade percentages later)
-    store_basal_count = {}
-
-    # Interpret row[col] as the overall percentage (0-100) and compute the absolute count:
+    basal_values = {}
+    subclade_values = {}
+    
     for col in haplo_cols:
-        val_pct = float(row[col])
+        try:
+            val_pct = float(row[col])
+        except:
+            continue
         if val_pct <= 0:
             continue
-        absolute_count = val_pct / 100.0 * total_ind if total_ind > 0 else val_pct
-
+        
         if is_basal_col(col):
-            basal_data.append((col, val_pct, absolute_count))
-            store_basal_count[col] = absolute_count
+            basal_values[col] = val_pct
         elif is_subclade_col(col):
-            subclade_data.append((col, val_pct, absolute_count))
-        else:
-            pass
+            parent = col[0]  # For example, the parent group of A1 is A
+            subclade_values.setdefault(parent, []).append((col, val_pct))
+    
+    basal_sorted = sorted(basal_values.items(), key=lambda x: x[1], reverse=True)
+    
+    label_list = []
+    data_main = []
+    data_sub = []
+    display_sub = []  # For displaying subclade percentages (as a percentage of parent group)
+    
+    for basal, basal_val in basal_sorted:
+        # Add parent group: inner ring shows actual value, outer ring filled with 0; display data doesn't show percentage
+        label_list.append(basal)
+        data_main.append(basal_val)
+        data_sub.append(0)
+        display_sub.append(None)
+        
+        if basal in subclade_values:
+            subclades = subclade_values[basal]
+            sum_sub = sum([val for (_, val) in subclades])
+            for sc, val in subclades:
+                label_list.append(sc)
+                data_main.append(0)  # Fill subclade position with 0 in inner ring
+                if sum_sub > 0:
+                    rel_val = (val / sum_sub) * basal_val
+                    disp_val = (val / sum_sub) * 100  # Calculate subclade percentage relative to parent group
+                else:
+                    rel_val = 0
+                    disp_val = 0
+                data_sub.append(rel_val)
+                display_sub.append(disp_val)
+    return label_list, data_main, data_sub, display_sub
 
-    # Optional sorting
-    basal_data.sort(key=lambda x: x[1], reverse=True)
-    subclade_data.sort(key=lambda x: x[1], reverse=True)
-
-    # Basal data (inner ring)
-    label_list = [b[0] for b in basal_data]
-    data_main  = [b[1] for b in basal_data]  # Basal percentages from the file
-
-    # Pre-fill outer ring data with zeros
-    data_sub = [0] * len(basal_data)
-
-    # Simple function to get the parent letter for a subclade
-    def get_parent_letter(sub):
-        return sub[0]  # For example, A1 -> A
-
-    # Collect subclade data (directly use the percentage values stored in the input file)
-    for (col_s, pct_s, abs_s) in subclade_data:
-        # Directly use the subclade percentage as outer ring data
-        label_list.append(col_s)
-        data_main.append(0)      # Subclades have 0 in the inner ring
-        data_sub.append(pct_s)   # Outer ring uses the percentage from the file
-
-    return label_list, data_main, data_sub
 
 def create_popup_html(marker_id, pop_name, country, age, total,
-                      label_list, data_main, data_sub, color_list,
+                      label_list, data_main, data_sub, display_sub, color_list,
                       haplo_type):
     """
-    Construct HTML to display a double-layer doughnut chart:
-      dataset[0] => subclades (outer ring)
-      dataset[1] => basal haplogroups (inner ring)
-
-    Use the DataLabels plugin to differentiate the display:
-      - For basal haplogroups (datasetIndex=1), display only the label.
-      - For subclades (datasetIndex=0), display "label + percentage".
+    Generate double-layer pie chart HTML, with inner and outer rings aligned, 
+    and outer ring labels showing subclade percentages relative to parent group.
     """
     chart_js_cdn = "https://cdn.jsdelivr.net/npm/chart.js"
     datalabels_cdn = "https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"
@@ -139,46 +132,43 @@ def create_popup_html(marker_id, pop_name, country, age, total,
     main_js = ", ".join([f"{v:.2f}" for v in data_main])
     sub_js = ", ".join([f"{v:.2f}" for v in data_sub])
     colors_js = ", ".join([f"'{c}'" for c in color_list])
+    display_js = ", ".join([f"{(v if v is not None else 'null')}" for v in display_sub])
 
-    # Calculate the sum of the outer ring values
-    sum_sub = sum(data_sub)
-
-    # dataset 0 => subclades (outer ring)
+    # dataset 0: outer ring (subclades); dataset 1: inner ring (parent groups)
     ds_sub = f"""
       {{
         label: 'Subclades (Outside)',
         data: [{sub_js}],
         backgroundColor: [{colors_js}],
+        borderAlign: 'inner',
         borderWidth: 1
       }}
     """
-    # dataset 1 => basal haplogroups (inner ring)
     ds_main = f"""
       {{
         label: 'Basal (Inside)',
         data: [{main_js}],
         backgroundColor: [{colors_js}],
+        borderAlign: 'inner',
         borderWidth: 1
       }}
     """
 
-    # If the outer ring sums to 0, only draw the basal ring
-    if sum_sub > 0:
-        datasets_code = f"[{ds_sub}, {ds_main}]"
-    else:
-        datasets_code = f"[{ds_main}]"
-
+    datasets_code = f"[{ds_sub}, {ds_main}]"
+    
     html = f"""
     <h4>{pop_name} ({country})</h4>
     <p>Age: {age}, Total: {total}</p>
     <p>{haplo_type}</p>
     <canvas id="{marker_id}" width="600" height="550"></canvas>
 
-    <!-- Include Chart.js and DataLabels plugin -->
+    <!-- Import Chart.js and DataLabels plugin -->
     <script src="{chart_js_cdn}"></script>
     <script src="{datalabels_cdn}"></script>
     <script>
       Chart.register(ChartDataLabels);
+      // displaySub array stores percentages for display, parent group portions are null
+      var displaySub = [{display_js}];
 
       var ctx = document.getElementById('{marker_id}').getContext('2d');
       var myChart = new Chart(ctx, {{
@@ -189,22 +179,23 @@ def create_popup_html(marker_id, pop_name, country, age, total,
         }},
         options: {{
           responsive: false,
+          cutout: '50%',
+          rotation: -0.5 * Math.PI,
           plugins: {{
             legend: {{ position: 'right' }},
             datalabels: {{
               display: function(context) {{
                 var val = context.dataset.data[context.dataIndex];
-                return val > 0; // Only display labels for values > 0
+                return val > 0;
               }},
               formatter: function(value, context) {{
-                // datasetIndex=0 => subclades (outer ring), datasetIndex=1 => basal haplogroups (inner ring)
                 var dsIndex = context.datasetIndex;
                 var lbl = context.chart.data.labels[context.dataIndex];
                 if(dsIndex === 0) {{
-                  // For subclades, display "label + percentage"
-                  return lbl + ' ' + value.toFixed(1) + '%';
+                  // For outer ring subclades, display the percentage stored in displaySub (if exists)
+                  var disp = displaySub[context.dataIndex];
+                  return lbl + (disp !== null ? ' ' + disp.toFixed(1) + '%' : '');
                 }} else {{
-                  // For basal haplogroups, display only the label
                   return lbl;
                 }}
               }},
@@ -222,11 +213,6 @@ def create_popup_html(marker_id, pop_name, country, age, total,
     return html
 
 def add_markers_to_group(df, haplo_cols, feature_group, id_prefix, haplo_type, color_map):
-    """
-    Build and add markers.
-      - Inner ring: basal haplogroups (datasetIndex=1, display label only)
-      - Outer ring: subclades (datasetIndex=0, display label + percentage)
-    """
     for idx, row in df.iterrows():
         pop_name = row["Ancient pop name"]
         country  = row["Country"]
@@ -238,12 +224,11 @@ def add_markers_to_group(df, haplo_cols, feature_group, id_prefix, haplo_type, c
         if pd.isna(lat) or pd.isna(lon):
             continue
 
-        # Calculate label_list, data_main, and data_sub
-        label_list, data_main, data_sub = build_two_ring_data(row, haplo_cols)
+        # Note: This now returns 4 arrays
+        label_list, data_main, data_sub, display_sub = build_two_ring_data(row, haplo_cols)
         if not label_list:
             continue
 
-        # Retrieve colors in the same order as labels
         color_list = [color_map[lbl] for lbl in label_list]
 
         marker_id = f"{id_prefix}_marker_{idx}"
@@ -254,8 +239,9 @@ def add_markers_to_group(df, haplo_cols, feature_group, id_prefix, haplo_type, c
             age=age,
             total=total,
             label_list=label_list,
-            data_main=data_main,      # Basal (inner ring)
-            data_sub=data_sub,        # Subclades (outer ring)
+            data_main=data_main,
+            data_sub=data_sub,
+            display_sub=display_sub,
             color_list=color_list,
             haplo_type=haplo_type
         )
@@ -268,6 +254,7 @@ def add_markers_to_group(df, haplo_cols, feature_group, id_prefix, haplo_type, c
             tooltip=f"{pop_name} ({country})",
             popup=popup
         ).add_to(feature_group)
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -287,24 +274,24 @@ def main():
     df_y, haplo_cols_y = process_dataframe(args.y_input, args.sep)
     df_mt, haplo_cols_mt = process_dataframe(args.mt_input, args.sep)
 
-    # Collect all labels (basal + subclade) for unified color mapping
+    # Collect all labels (parent groups and subclades) for unified color mapping
     all_labels = sorted(set(haplo_cols_y + haplo_cols_mt))
     color_map = generate_color_palette(all_labels)
     
-    # Calculate the center of the map
+    # Calculate map center point
     all_lat = pd.concat([df_y["Lat"], df_mt["Lat"]])
     all_lon = pd.concat([df_y["Long"], df_mt["Long"]])
     center_lat = all_lat.mean() if not all_lat.empty else 20
     center_lon = all_lon.mean() if not all_lon.empty else 0
     
-    # Initialize the map
+    # Initialize map
     folium_map = folium.Map(location=[center_lat, center_lon], zoom_start=3)
     
-    # Create feature groups
+    # Create layers
     fg_y  = folium.FeatureGroup(name="Y-chr")
     fg_mt = folium.FeatureGroup(name="mtDNA")
 
-    # Add markers to each feature group
+    # Add markers to each layer
     add_markers_to_group(df_y,  haplo_cols_y,  fg_y,  "y",  "Y-chr haplogroup",  color_map)
     add_markers_to_group(df_mt, haplo_cols_mt, fg_mt, "mt", "mtDNA haplogroup", color_map)
     
