@@ -56,7 +56,7 @@ HaploMapper/
 │   └── haplogroup_map.html
 └── requirements.txt
 ```
-**Note: The version 1,2,3 of geographic visualizaion part can be found in different branches, as well as the old version of haplogroup frequency calculation part.***
+**Note: The version 1,2,3 of geographic visualizaion part can be respectively found in branches geography-v1, v2, v3, the old version of haplogroup frequency calculation part can be found in branch geography-v1.***
 
 ## Installation
 Clone the repository and install required Python dependencies:
