@@ -43,9 +43,13 @@ Clone the repository and install required Python dependencies:
 
 ## Dependencies
 **Python (recommended 3.12.9)**
+
 **pandas**
+
 **numpy**
+
 **folium**
+
 **openpyxl**
 
 ## Running the Code
